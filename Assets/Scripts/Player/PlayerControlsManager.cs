@@ -18,9 +18,12 @@ public class PlayerControlsManager : MonoBehaviour
 
     void Update()
     {
+        // Attack
         ReadAttackInput();
     }
 
+
+    // ------ ATTACK INPUT START ------ //
     void ReadAttackInput()
     {
         if (attack.triggered)
@@ -41,9 +44,10 @@ public class PlayerControlsManager : MonoBehaviour
         FinishAttackInput();
     }
 
-    // Example function to be executed after the delay
     void FinishAttackInput()
     {
         animator.SetBool("Attack", false);
     }
+
+    // ------ ATTACK INPUT END ------ //
 }
