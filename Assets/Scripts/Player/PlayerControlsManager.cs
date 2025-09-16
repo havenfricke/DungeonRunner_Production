@@ -7,7 +7,7 @@ public class PlayerControlsManager : MonoBehaviour
     private InputAction attack;
     private PlayerInput input;
     private Animator animator;
-    private float attackSpeed = 0.1f;
+    private float attackInterval = 0.1f;
 
     private void Start()
     {
@@ -29,7 +29,7 @@ public class PlayerControlsManager : MonoBehaviour
         if (attack.triggered)
         {
             animator.SetBool("Attack", true);
-            StartDelayedExecution(attackSpeed);
+            StartDelayedExecution(attackInterval);
         }
     }
 

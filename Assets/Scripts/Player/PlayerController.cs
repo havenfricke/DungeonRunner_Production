@@ -27,6 +27,9 @@ public class PlayerController : MonoBehaviour
     private Transform cam;
     private Animator anim;
 
+    // Control scheme gate: true only when current active scheme is Keyboard+Mouse
+    private bool isKeyboardMouse;
+
     void Awake()
     {
         controller = GetComponent<CharacterController>();
@@ -35,6 +38,47 @@ public class PlayerController : MonoBehaviour
         lookAction = input.actions["Look"];
         anim = GetComponentInChildren<Animator>();
         if (Camera.main) cam = Camera.main.transform;
+    }
+
+    void OnEnable()
+    {
+        // Subscribe to control scheme changes and do an initial evaluation
+        UpdateAimMode();
+        input.onControlsChanged += OnControlsChanged;
+    }
+
+    void OnDisable()
+    {
+        if (input != null)
+            input.onControlsChanged -= OnControlsChanged;
+    }
+
+    private void OnControlsChanged(PlayerInput pi) => UpdateAimMode();
+
+    private void UpdateAimMode()
+    {
+        // Prefer control scheme name (e.g., "Keyboard&Mouse", "Gamepad")
+        var scheme = input.currentControlScheme ?? string.Empty;
+
+        // Consider any scheme with "keyboard" or "mouse" in its name as KB&M
+        isKeyboardMouse =
+            scheme.IndexOf("keyboard", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+            scheme.IndexOf("mouse", System.StringComparison.OrdinalIgnoreCase) >= 0;
+
+        // Fallback: inspect attached devices (robust if scheme names differ)
+        if (!isKeyboardMouse)
+        {
+            var devices = input.devices;
+            for (int i = 0; i < devices.Count; i++)
+            {
+                if (devices[i] is Keyboard || devices[i] is Mouse)
+                {
+                    isKeyboardMouse = true;
+                    break;
+                }
+            }
+        }
+        // Debug.Log($"[PlayerController] Scheme='{scheme}'  isKeyboardMouse={isKeyboardMouse}");
     }
 
     void Update()
@@ -52,8 +96,11 @@ public class PlayerController : MonoBehaviour
         // ---- ROTATE (Mouse > RS > Move) ----
         Vector3 faceDir = Vector3.zero;
 
-        // 1) Mouse cursor facing (highest priority)
-        if (useMouseAim && TryGetMouseAimDirection(out var mouseDir))
+        // Allow mouse aim only when the active scheme is Keyboard&Mouse
+        bool allowMouseAim = useMouseAim && isKeyboardMouse;
+
+        // 1) Mouse cursor facing (highest priority when allowed)
+        if (allowMouseAim && TryGetMouseAimDirection(out var mouseDir))
         {
             faceDir = mouseDir;
         }
@@ -75,7 +122,6 @@ public class PlayerController : MonoBehaviour
         }
 
         // ---- ANIMATOR ----
-        // Feed the animator with the actual facing choice (mouse > RS > move)
         UpdateAnimatorValues(moveDir, faceDir);
     }
 
@@ -88,10 +134,6 @@ public class PlayerController : MonoBehaviour
 
         // Movement direction relative to CURRENT facing (local space)
         Vector3 localMove = hasMove ? transform.InverseTransformDirection(moveWorld.normalized) : Vector3.zero;
-
-        // Optional: backward flag (kept from your structure if you want it)
-        // float alignment = hasMove ? Vector3.Dot(moveWorld.normalized, transform.forward) : 0f;
-        // bool movingBackward = hasMove && alignment < -0.35f;
 
         anim.SetFloat("Speed", speed, animDamp, Time.deltaTime);
         anim.SetFloat("MoveX", localMove.x, animDamp, Time.deltaTime);
@@ -117,7 +159,6 @@ public class PlayerController : MonoBehaviour
         dir = Vector3.zero;
         if (cam == null) return false;
 
-        // Support Mouse or Touch (first touch) — if you only target desktop, Mouse is enough
         Vector2 screenPos = Vector2.zero;
         if (Mouse.current != null)
             screenPos = Mouse.current.position.ReadValue();
