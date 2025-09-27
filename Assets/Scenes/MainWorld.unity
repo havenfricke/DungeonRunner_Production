@@ -781,14 +781,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f167fb746ae5974ca67793d6624b85b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  portName: COM3
-  baudRate: 9600
+  portName: COM5
+  baudRate: 57600
   readTimeoutMs: 25
-  centerX: 496
-  centerY: 507
+  centerX: 526
+  centerY: 517
   rawMin: 0
   rawMax: 1023
-  deadzone: 0.09
+  deadzone: 0.5
   smooth: 0.15
   rawX: 0
   rawY: 0
