@@ -5,14 +5,8 @@ using UnityEngine;
 public class EnemySpawn : MonoBehaviour
 {
     [SerializeField] GameObject enemyPrefab;
-    private Vector3 position;
-    public Vector3 spawnPosition
-    {
-        get => position;
-    }
     private void Start()
     {
-        transform.position = position;
-        Instantiate(enemyPrefab);
+        Instantiate(enemyPrefab, transform.position, transform.rotation);
     }
 }
