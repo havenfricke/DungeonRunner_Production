@@ -19,11 +19,16 @@ and manage the virtual gamepad.
 
 *Elegoo Uno R3 Analog Joystick Input Module
 
+Joystick
 GND  -> GND
 5V   -> 5V
 VRx  -> A0
 VRy  -> A1
 SW   -> D2 
+
+Button
+GND  -> (-) Breadboard
+3.3v -> (+) Breadboard
 
 ---ARDUINO IDE CODE CORRESPONDING TO THIS SCRIPT---
 
@@ -84,8 +89,14 @@ Unity needs to be set to use .NET Framework by changing settings found in:
 Edit > Project Settings > Player > Other Settings > Configuration > Api Compatability Level
 */
 
+using System;
+using System.IO.Ports;
+using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.InputSystem;
+
 public class ArduinoInput : MonoBehaviour
-{ 
+{
     [Header("Serial Settings")]
     [Tooltip("Windows: COM3, COM4...  |  macOS: /dev/tty.usbmodemXXXX or /dev/tty.usbserialXXXX")]
     public string portName = "COM3";
@@ -105,22 +116,40 @@ public class ArduinoInput : MonoBehaviour
     [Range(0f, 0.3f)] public float deadzone = 0.09f;
     [Range(0f, 1f)] public float smooth = 0.15f; // 0 = off
 
+    [Header("Button Mapping")]
+    [Tooltip("Which button the Z-click should press on the virtual gamepad")]
+    public GamepadButton zMapsTo = GamepadButton.North;  
+    [Tooltip("Which button the extra 'b' input should press on the virtual gamepad")]
+    public GamepadButton bMapsTo = GamepadButton.RightTrigger;  
+    [Tooltip("If your wiring uses pull-ups (HIGH when released, LOW when pressed), leave this ON.")]
+    public bool bIsActiveLow = true;
+    [Tooltip("If your Z input comes in active-low, set this accordingly.")]
+    public bool zIsActiveLow = false; // your Arduino flips z already; leave false unless you change Arduino side
+
     [Header("Debug (read-only)")]
     public int rawX;
     public int rawY;
-    public int rawZ; // 0 or 1
+    public int rawZ; // 0 or 1 (raw from serial)
+    public int rawB; // 0 or 1 (raw from serial)
     public float normX; // -1..1
     public float normY; // -1..1
+    public bool zPressed; // processed (after active-low)
+    public bool bPressed; // processed (after active-low)
+
+    // Simple edge events if you want to hook into UnityEvents in the Inspector
+    [Header("Events")]
+    public UnityEvent onBPressed;
+    public UnityEvent onBReleased;
 
     private SerialPort _sp;
     private float _smoothedX, _smoothedY;
-
-    // Virtual Input System device
     private Gamepad _virtualPad;
+
+    // previous states for edge detection
+    private bool _prevBPressed;
 
     void OnEnable()
     {
-        // Create a virtual gamepad that the Input System will recognize
         _virtualPad = InputSystem.AddDevice<Gamepad>("Arduino Gamepad");
         Debug.Log("[ArduinoInput] Virtual Gamepad added: " + _virtualPad?.name);
     }
@@ -150,21 +179,21 @@ public class ArduinoInput : MonoBehaviour
                     var line = _sp.ReadLine().Trim();
                     if (string.IsNullOrEmpty(line)) continue;
 
-                    // Expect "x512", "y487", "z1"
+                    // Expect "x512", "y487", "z1", "b1"
                     switch (line[0])
                     {
                         case 'x': if (int.TryParse(line.AsSpan(1), out var vx)) rawX = vx; break;
                         case 'y': if (int.TryParse(line.AsSpan(1), out var vy)) rawY = vy; break;
                         case 'z': if (int.TryParse(line.AsSpan(1), out var vz)) rawZ = Mathf.Clamp(vz, 0, 1); break;
+                        case 'b': if (int.TryParse(line.AsSpan(1), out var vb)) rawB = Mathf.Clamp(vb, 0, 1); break;
                     }
                 }
             }
-            catch (TimeoutException) { /* no new data, catch and do nothing */ }
+            catch (TimeoutException) { /* no new data */ }
             catch (Exception e)
             {
                 Debug.LogWarning("[ArduinoInput] Serial read error: " + e.Message);
             }
-            
         }
 
         // Normalize & smooth
@@ -183,46 +212,45 @@ public class ArduinoInput : MonoBehaviour
             _smoothedY = normY;
         }
 
-        //Debug.Log($"x: {_smoothedX} y: {_smoothedY} / z: {rawZ}");
+        // Process digital inputs with active-low options
+        zPressed = zIsActiveLow ? (rawZ == 0) : (rawZ != 0);
+        bPressed = bIsActiveLow ? (rawB == 0) : (rawB != 0);
+
+        //Debug.Log($"x: {_smoothedX} y: {_smoothedY} / z: {rawZ} b:{rawB}");
+
+        // Edge detection
+        if (bPressed && !_prevBPressed) onBPressed?.Invoke();
+        if (!bPressed && _prevBPressed) onBReleased?.Invoke();
+        _prevBPressed = bPressed;
 
         // Feed into the virtual gamepad
         if (_virtualPad != null)
         {
             uint buttons = 0;
 
-            // map Z to the south button. The expression a |= b is equivalent to a = a | b;
-            if (rawZ != 0) buttons |= (uint)GamepadButton.South; 
+            if (zPressed) buttons |= (uint)zMapsTo;
+            if (bPressed) buttons |= (uint)bMapsTo;
 
             var state = new GamepadState
             {
-                leftStick = new Vector2(_smoothedX, -_smoothedY), // -smoothedY to match typical Y-up in Unity with arduino input device
+                leftStick = new Vector2(_smoothedX, -_smoothedY),
                 buttons = buttons
             };
 
-            // Enqueue device state so Input System actions can read it this frame
             InputSystem.QueueStateEvent(_virtualPad, state);
         }
     }
 
-    // The method is marked static because it does not depend on any instance data from ArduinoInput
     static float NormalizeAxis(int raw, int center, int min, int max, float dz)
     {
-        // Use asymmetric range: if stick is left of center, measure from min center;
-        // if right of center, measure from center max.
         float range = raw >= center ? (max - center) : (center - min);
-        if (range <= 0.0001f) return 0f; 
+        if (range <= 0.0001f) return 0f;
 
-        // Normalize raw value relative to center gives value in -1..1
         float v = Mathf.Clamp((raw - center) / range, -1f, 1f);
-
-        // Apply deadzone: if within dz of 0, treat as zero
         float mag = Mathf.Abs(v);
         if (mag < dz) return 0f;
 
-        // Rescale so the value just outside the deadzone maps back to 0..1.
-        // Mathf.Sign() returns either a value of -1 when f is negative, or a value of 1 when f is 0 or greater.
         float rescaled = Mathf.InverseLerp(dz, 1f, mag) * Mathf.Sign(v);
-
         return Mathf.Clamp(rescaled, -1f, 1f);
     }
 
@@ -237,8 +265,7 @@ public class ArduinoInput : MonoBehaviour
 
         if (_sp != null)
         {
-            try { if (_sp.IsOpen) _sp.Close(); }
-            catch { /* ignore */ }
+            try { if (_sp.IsOpen) _sp.Close(); } catch { }
             _sp.Dispose();
             _sp = null;
         }
@@ -246,3 +273,4 @@ public class ArduinoInput : MonoBehaviour
 
     void OnApplicationQuit() => OnDisable();
 }
+
