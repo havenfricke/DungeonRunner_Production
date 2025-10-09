@@ -3,6 +3,7 @@ using System.IO.Ports;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.Events;
 
 /*
 ---------ARDUINO INPUT TO VIRTUAL GAMEPAD----------
@@ -89,11 +90,8 @@ Unity needs to be set to use .NET Framework by changing settings found in:
 Edit > Project Settings > Player > Other Settings > Configuration > Api Compatability Level
 */
 
-using System;
-using System.IO.Ports;
-using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.InputSystem;
+
+
 
 public class ArduinoInput : MonoBehaviour
 {
