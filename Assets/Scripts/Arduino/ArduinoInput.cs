@@ -87,22 +87,22 @@ Edit > Project Settings > Player > Other Settings > Configuration > Api Compatab
 public class ArduinoInput : MonoBehaviour
 { 
     [Header("Serial Settings")]
-    [Tooltip("Windows: COM3, COM4...  |  macOS: /dev/tty.usbmodemXXXX or /dev/tty.usbserialXXXX")]
-    public string portName = "COM3";
-    public int baudRate = 9600;
+    [Tooltip("Windows: COM5, COM4...  |  macOS: /dev/tty.usbmodemXXXX or /dev/tty.usbserialXXXX")]
+    public string portName = "COM5";
+    public int baudRate = 57600;
     public int readTimeoutMs = 25;
 
     [Header("Calibration (raw at rest)")]
     [Tooltip("Center (idle) values from your Arduino at rest")]
-    public int centerX = 496;
-    public int centerY = 507;
+    public int centerX = 526;
+    public int centerY = 517;
 
     [Tooltip("Raw input min/max from analogRead")]
     public int rawMin = 0;
     public int rawMax = 1023;
 
     [Header("Processing")]
-    [Range(0f, 0.3f)] public float deadzone = 0.09f;
+    [Range(0f, 1f)] public float deadzone = 0.45f;
     [Range(0f, 1f)] public float smooth = 0.15f; // 0 = off
 
     [Header("Debug (read-only)")]
@@ -129,7 +129,7 @@ public class ArduinoInput : MonoBehaviour
     {
         try
         {
-            _sp = new SerialPort(portName, baudRate) { NewLine = "\n", ReadTimeout = readTimeoutMs };
+            _sp = new SerialPort("COM5", 57600) { NewLine = "\n", ReadTimeout = readTimeoutMs };
             _sp.Open();
             Debug.Log("[ArduinoInput] Serial opened on " + portName);
         }
@@ -183,7 +183,7 @@ public class ArduinoInput : MonoBehaviour
             _smoothedY = normY;
         }
 
-        //Debug.Log($"x: {_smoothedX} y: {_smoothedY} / z: {rawZ}");
+        Debug.Log($"x: {_smoothedX} y: {_smoothedY} / z: {rawZ}");
 
         // Feed into the virtual gamepad
         if (_virtualPad != null)

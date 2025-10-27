@@ -198,7 +198,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: e8b9923ab8494ac46a3b34d8a1f2d324, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -781,20 +781,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f167fb746ae5974ca67793d6624b85b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  portName: COM3
-  baudRate: 9600
+  portName: COM5
+  baudRate: 57600
   readTimeoutMs: 25
-  centerX: 496
-  centerY: 507
+  centerX: 526
+  centerY: 517
   rawMin: 0
   rawMax: 1023
-  deadzone: 0.09
+  deadzone: 0.5
   smooth: 0.15
   rawX: 0
   rawY: 0
   rawZ: 0
   normX: 0
   normY: 0
+  disableWhenNotConnected: 1
+  arduinoConnected: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
