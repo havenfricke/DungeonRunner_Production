@@ -1,9 +1,10 @@
 using System;
 using System.IO.Ports;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
-using UnityEngine.Events;
+using UnityEngine.Windows;
 
 /*
 ---------ARDUINO INPUT TO VIRTUAL GAMEPAD----------
@@ -134,11 +135,6 @@ public class ArduinoInput : MonoBehaviour
     public bool zPressed; // processed (after active-low)
     public bool bPressed; // processed (after active-low)
 
-    // Simple edge events if you want to hook into UnityEvents in the Inspector
-    [Header("Events")]
-    public UnityEvent onBPressed;
-    public UnityEvent onBReleased;
-
     private SerialPort _sp;
     private float _smoothedX, _smoothedY;
     private Gamepad _virtualPad;
@@ -146,10 +142,13 @@ public class ArduinoInput : MonoBehaviour
     // previous states for edge detection
     private bool _prevBPressed;
 
-    void OnEnable()
+    void Awake()
     {
-        _virtualPad = InputSystem.AddDevice<Gamepad>("Arduino Gamepad");
-        Debug.Log("[ArduinoInput] Virtual Gamepad added: " + _virtualPad?.name);
+        if (_sp == null)
+        {
+            _virtualPad = InputSystem.AddDevice<Gamepad>("Arduino Gamepad");
+            Debug.Log("[ArduinoInput] Virtual Gamepad added: " + _virtualPad.name);
+        }
     }
 
     void Start()
@@ -214,24 +213,22 @@ public class ArduinoInput : MonoBehaviour
         zPressed = zIsActiveLow ? (rawZ == 0) : (rawZ != 0);
         bPressed = bIsActiveLow ? (rawB == 0) : (rawB != 0);
 
-        //Debug.Log($"x: {_smoothedX} y: {_smoothedY} / z: {rawZ} b:{rawB}");
+        Debug.Log($"x: {_smoothedX} y: {_smoothedY} / z: {rawZ} b:{rawB}");
 
         // Edge detection
-        if (bPressed && !_prevBPressed) onBPressed?.Invoke();
-        if (!bPressed && _prevBPressed) onBReleased?.Invoke();
         _prevBPressed = bPressed;
 
-        // Feed into the virtual gamepad
         if (_virtualPad != null)
         {
+            // Buttons (for anything that really IS a button)
             uint buttons = 0;
+            if (zPressed) buttons |= (uint)zMapsTo; // ok if zMapsTo is a real button (South/North/etc.)
 
-            if (zPressed) buttons |= (uint)zMapsTo;
-            if (bPressed) buttons |= (uint)bMapsTo;
-
+            // IMPORTANT: Right trigger is an AXIS (0..1), not a button
             var state = new GamepadState
             {
                 leftStick = new Vector2(_smoothedX, -_smoothedY),
+                rightTrigger = bPressed ? 1f : 0f,   // map Arduino 'b' to RT axis
                 buttons = buttons
             };
 

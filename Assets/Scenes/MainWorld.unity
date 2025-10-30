@@ -756,7 +756,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_NotificationBehavior: 0
-  m_MaxPlayerCount: -1
+  m_MaxPlayerCount: 2
   m_AllowJoining: 1
   m_JoinBehavior: 0
   m_PlayerJoinedEvent:
@@ -768,7 +768,7 @@ MonoBehaviour:
   m_JoinAction:
     m_UseReference: 0
     m_Action:
-      m_Name: 
+      m_Name: Join
       m_Type: 0
       m_ExpectedControlType: 
       m_Id: 8ae79f0f-1d81-43a7-a89b-07b30cd3d1f1
@@ -823,11 +823,18 @@ MonoBehaviour:
   rawMax: 1023
   deadzone: 0.09
   smooth: 0.15
+  zMapsTo: 4
+  bMapsTo: 15
+  bIsActiveLow: 1
+  zIsActiveLow: 0
   rawX: 0
   rawY: 0
   rawZ: 0
+  rawB: 0
   normX: 0
   normY: 0
+  zPressed: 0
+  bPressed: 0
 --- !u!1001 &2123776899
 PrefabInstance:
   m_ObjectHideFlags: 0
