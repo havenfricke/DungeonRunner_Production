@@ -161,7 +161,7 @@ public class ArduinoInput : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError("[ArduinoInput] Failed to open serial: " + e.Message);
+            Debug.Log("[ArduinoInput] Failed to open serial: " + e.Message);
         }
     }
 

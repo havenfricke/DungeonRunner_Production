@@ -3,7 +3,22 @@ guid: cffd1def0b3cbd5429032adec96bf105
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert7
+    second: {fileID: 2100000, guid: 570f19c2e03bd7e48b1660752bb5a07d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert8
+    second: {fileID: 2100000, guid: dff62f5c81203e147a881d5e52f446b1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: lambert9
+    second: {fileID: 2100000, guid: 4630cc3582170a445a1854d01cc18e39, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -31,7 +46,7 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Take 001
+      name: frogwalk
       takeName: Take 001
       internalID: 1827226128182048838
       firstFrame: 1
