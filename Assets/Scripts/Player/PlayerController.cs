@@ -117,7 +117,7 @@ public class PlayerController : MonoBehaviour
 
         if (faceDir != Vector3.zero)
         {
-            Quaternion target = Quaternion.LookRotation(faceDir, Vector3.up);
+            Quaternion target = Quaternion.LookRotation(faceDir, -Vector3.up);
             transform.rotation = Quaternion.Slerp(transform.rotation, target, rotationSpeed * Time.deltaTime);
         }
 
@@ -193,7 +193,7 @@ public class PlayerController : MonoBehaviour
     }
 }
 
-// Small helper so SetBool checks don’t throw if param doesn’t exist
+// Small helper so SetBool checks donï¿½t throw if param doesnï¿½t exist
 public static class AnimatorExtensions
 {
     public static bool HasParameterOfType(this Animator self, string name, AnimatorControllerParameterType type)
