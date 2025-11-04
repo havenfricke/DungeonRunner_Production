@@ -6,7 +6,7 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
     public float moveSpeed = 4.5f;
-    public float rotationSpeed = 5f;
+    public float rotationSpeed = 10f;
     public bool cameraRelative = false;
 
     [Header("Animation")]
