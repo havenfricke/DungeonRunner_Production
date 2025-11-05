@@ -9,27 +9,42 @@ public class KeyCounterUI : MonoBehaviour
 
     private int keyCount = 0;
 
-    // Start is called before the first frame update
     void Start()
     {
         UpdateKeyCountText();
     }
 
-    // Update is called once per frame
     void Update()
     {
+        // Temporary test input
         if (Input.GetKeyDown(KeyCode.K))
         {
-            keyCount++;
-            UpdateKeyCountText();
+            AddKey();
         }
-
         else if (Input.GetKeyDown(KeyCode.L))
         {
-            if (keyCount > 0)
-                keyCount--;
+            RemoveKey();
+        }
+    }
+
+    public void AddKey()
+    {
+        keyCount++;
+        UpdateKeyCountText();
+    }
+
+    public void RemoveKey()
+    {
+        if (keyCount > 0)
+        {
+            keyCount--;
             UpdateKeyCountText();
         }
+    }
+
+    public bool HasKey()
+    {
+        return keyCount > 0;
     }
 
     private void UpdateKeyCountText()

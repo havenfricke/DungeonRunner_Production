@@ -19,7 +19,6 @@ public class PlayerHealth : MonoBehaviour
         currentHealth = maxHealth;
     }
 
-    // Called externally by enemies or other sources of damage
     public void TakeDamage(float damageAmount)
     {
         if (isDead || healthBar == null) return;
@@ -37,6 +36,8 @@ public class PlayerHealth : MonoBehaviour
     private void HandleDeath()
     {
         Debug.Log($"{name} has died!");
-        // You can add respawn logic or disable movement here
+
+        // Notify the GameManager
+        GameManager.Instance.PlayerDied(this);
     }
 }

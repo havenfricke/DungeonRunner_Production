@@ -1,45 +1,44 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    private List<PlayerHealth> players = new List<PlayerHealth>();
-    private bool gameOver = false;
+    [Header("UI")]
+    [SerializeField] private GameObject gameOverCanvas;
+    [SerializeField] private GameObject gameWinCanvas;
 
-    [Header("UI References")]
-    public GameObject gameOverCanvas;
+    private int deadPlayers = 0;
+    private int totalPlayers = 2;
 
     private void Awake()
     {
-        if (Instance == null)
-            Instance = this;
-        else
-            Destroy(gameObject);
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+
+        if (gameOverCanvas != null)
+            gameOverCanvas.SetActive(false);
+    
+        if (gameWinCanvas != null)
+            gameWinCanvas.SetActive(false);
     }
 
-    public void RegisterPlayer(PlayerHealth player)
+    private void Update()
     {
-        if (!players.Contains(player))
-            players.Add(player);
-    }
-
-    public void CheckForGameOver()
-    {
-        // If every player is dead, trigger game over
-        bool allDead = true;
-        foreach (PlayerHealth p in players)
+        // Temporary test input
+        if (Input.GetKeyDown(KeyCode.G))
         {
-            if (!p.IsDead)
-            {
-                allDead = false;
-                break;
-            }
+            TriggerGameOver();
         }
+    }
 
-        if (allDead && !gameOver)
+    public void PlayerDied(PlayerHealth player)
+    {
+        deadPlayers++;
+        Debug.Log($"A player has died! Dead players: {deadPlayers}/{totalPlayers}");
+
+        if (deadPlayers >= totalPlayers)
         {
             TriggerGameOver();
         }
@@ -47,23 +46,50 @@ public class GameManager : MonoBehaviour
 
     private void TriggerGameOver()
     {
-        gameOver = true;
+        Debug.Log("All players have died — Game Over!");
         if (gameOverCanvas != null)
             gameOverCanvas.SetActive(true);
 
-        foreach (PlayerHealth p in players)
+        // Destroy all player GameObjects
+        foreach (PlayerHealth player in FindObjectsOfType<PlayerHealth>())
         {
-            p.DisableControls();
+            Destroy(player.gameObject);
         }
+
+        // Optionally pause game time
+        Time.timeScale = 0f;
     }
 
+    public void TriggerGameWin()
+    {
+        Debug.Log("Players reached the treasure!");
+        if (gameWinCanvas != null)
+            gameWinCanvas.SetActive(true);
+
+        // Destroy all player GameObjects
+        foreach (PlayerHealth player in FindObjectsOfType<PlayerHealth>())
+        {
+            Destroy(player.gameObject);
+        }
+
+        // Optionally pause game time
+        Time.timeScale = 0f;
+    }
+
+    // Called by UI buttons
     public void TryAgain()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     public void GiveUp()
     {
+        Debug.Log("Quitting game...");
+    #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+    #else
         Application.Quit();
+    #endif
     }
 }
