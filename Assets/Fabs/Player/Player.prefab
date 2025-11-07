@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 2523165769439112352}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.0027, y: 0.6828, z: 0.3469}
+  m_LocalPosition: {x: 0.0027, y: -0.112, z: 0.3469}
   m_LocalScale: {x: 0.9946476, y: 0.25571758, z: 0.3063}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -106,8 +106,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 0.6649375, y: 2.3148706, z: 2.1649115}
+  m_Center: {x: -0.0061633266, y: -0.9498524, z: -1.1204878}
 --- !u!1 &5265053609510058125
 GameObject:
   m_ObjectHideFlags: 0
@@ -121,6 +121,10 @@ GameObject:
   - component: {fileID: 2880262154403549671}
   - component: {fileID: 8459551461514895550}
   - component: {fileID: 9157227236644901852}
+  - component: {fileID: 5172037292034178834}
+  - component: {fileID: -3672564905302413487}
+  - component: {fileID: 1762182214357610189}
+  - component: {fileID: 8542567951025676749}
   m_Layer: 6
   m_Name: Player
   m_TagString: Player
@@ -312,6 +316,61 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.9, z: 0}
+--- !u!114 &5172037292034178834
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5265053609510058125}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3fddc2af3ed9de49a605522a76dcfe7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fillImage: {fileID: 0}
+  playerNumber: 0
+--- !u!114 &-3672564905302413487
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5265053609510058125}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83c278f81e31c7c43943415553bb5d40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  healthBar: {fileID: 0}
+  maxHealth: 100
+--- !u!114 &1762182214357610189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5265053609510058125}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf17d11be686ef440a5f7c6e4e071e02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  attackRange: 2
+  attackDamage: 10
+  attackCooldown: 0.8
+--- !u!114 &8542567951025676749
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5265053609510058125}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffaf8983f5618b54d809902ac1742fbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8476803540471555602
 GameObject:
   m_ObjectHideFlags: 0
