@@ -6,7 +6,7 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
     public float moveSpeed = 4.5f;
-    public float rotationSpeed = 5f;
+    public float rotationSpeed = 10f;
     public bool cameraRelative = false;
 
     [Header("Animation")]
@@ -27,6 +27,10 @@ public class PlayerController : MonoBehaviour
     private Transform cam;
     private Animator anim;
 
+    private HealthBarUI healthBarUI;
+
+    public int playerNumber { get; private set; } = 0;
+
     // Control scheme gate: true only when current active scheme is Keyboard+Mouse
     private bool isKeyboardMouse;
 
@@ -38,6 +42,27 @@ public class PlayerController : MonoBehaviour
         lookAction = input.actions["Look"];
         anim = GetComponentInChildren<Animator>();
         if (Camera.main) cam = Camera.main.transform;
+    }
+
+    public void SetPlayerNumber(int number)
+    {
+        playerNumber = number;
+        Debug.Log($"{name} assigned player number {playerNumber}");
+
+        // Ensure HealthBarUI knows about the player number
+        if (healthBarUI == null)
+        {
+            healthBarUI = GetComponentInChildren<HealthBarUI>();
+        }
+
+        if (healthBarUI != null)
+        {
+            healthBarUI.SetPlayerNumber(number);
+        }
+        else
+        {
+            Debug.LogWarning($"{name}: Cannot forward player number to HealthBarUI because it's missing.");
+        }
     }
 
     void OnEnable()
@@ -193,7 +218,7 @@ public class PlayerController : MonoBehaviour
     }
 }
 
-// Small helper so SetBool checks don’t throw if param doesn’t exist
+// Small helper so SetBool checks donï¿½t throw if param doesnï¿½t exist
 public static class AnimatorExtensions
 {
     public static bool HasParameterOfType(this Animator self, string name, AnimatorControllerParameterType type)

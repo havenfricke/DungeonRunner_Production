@@ -31,6 +31,7 @@ public class EnemyInput : MonoBehaviour
     public float attackDuration = 0.45f;
     public float attackCooldown = 1f;
     public bool holdPositionWhileAttacking = false;
+    private bool hasDealtDamage = false;
 
     [Tooltip("If true, requires a clear ray to target to attack.")]
     public bool requireLineOfSight = true;
@@ -113,8 +114,18 @@ public class EnemyInput : MonoBehaviour
         if (isAttacking)
         {
             attackTimer -= Time.deltaTime;
+            // Perform the attack raycast when the attack "connects"
+            if (attackTimer <= attackDuration * 0.5f && !hasDealtDamage) // Fires once near the end of the attack
+            {
+                PerformAttackRaycast();
+                hasDealtDamage = true;
+            }
+
             if (attackTimer <= 0f)
+            {
                 EndAttack();
+                hasDealtDamage = false;
+            }
         }
 
         // Awareness and target
@@ -226,6 +237,36 @@ public class EnemyInput : MonoBehaviour
         isAttacking = true;
         attackTimer = Mathf.Max(0.05f, attackDuration);
         animator.SetBool(HashAttack, true);
+    }
+
+    private void PerformAttackRaycast()
+    {
+        // Starting point slightly above the ground to match the enemy's chest/weapon height
+        Vector3 origin = transform.position + Vector3.up * 1f;
+
+        // Forward direction based on enemy facing
+        Vector3 direction = transform.forward;
+
+        // You can tweak these or expose them as public variables if desired
+        float attackRange = 2f;
+        float attackDamage = 10f;
+
+        // Visualize the ray in the Scene view
+        Debug.DrawRay(origin, direction * attackRange, Color.red, 0.3f);
+
+        // Perform the raycast
+        if (Physics.Raycast(origin, direction, out RaycastHit hit, attackRange))
+        {
+            if (hit.collider.CompareTag("Player"))
+            {
+                PlayerHealth playerHealth = hit.collider.GetComponentInParent<PlayerHealth>();
+                if (playerHealth != null)
+                {
+                    playerHealth.TakeDamage(attackDamage);
+                    Debug.Log($"{name} hit {hit.collider.name} for {attackDamage} damage!");
+                }
+            }
+        }
     }
 
     private void EndAttack()

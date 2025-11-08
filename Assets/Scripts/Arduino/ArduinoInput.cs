@@ -144,15 +144,6 @@ public class ArduinoInput : MonoBehaviour
 
     void Awake()
     {
-        if (_sp == null)
-        {
-            _virtualPad = InputSystem.AddDevice<Gamepad>("Arduino Gamepad");
-            Debug.Log("[ArduinoInput] Virtual Gamepad added: " + _virtualPad.name);
-        }
-    }
-
-    void Start()
-    {
         try
         {
             _sp = new SerialPort(portName, baudRate) { NewLine = "\n", ReadTimeout = readTimeoutMs };
@@ -161,7 +152,16 @@ public class ArduinoInput : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError("[ArduinoInput] Failed to open serial: " + e.Message);
+            Debug.Log("[ArduinoInput] Failed to open serial: " + e.Message);
+        }
+    }
+
+    void Start()
+    {
+        if (_sp == null)
+        {
+            _virtualPad = InputSystem.AddDevice<Gamepad>("Arduino Gamepad");
+            Debug.Log("[ArduinoInput] Virtual Gamepad added: " + _virtualPad.name);
         }
     }
 
