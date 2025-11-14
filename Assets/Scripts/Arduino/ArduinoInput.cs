@@ -1,7 +1,7 @@
 using System;
 using System.IO.Ports;
 using UnityEngine;
-using UnityEngine.Events;
+
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.Windows;
@@ -20,40 +20,26 @@ and manage the virtual gamepad.
 --------------ARDUINO CONFIGURATION----------------
 
 *Elegoo Uno R3 Analog Joystick Input Module
-
-Joystick
-GND  -> GND
-5V   -> 5V
-VRx  -> A0
-VRy  -> A1
-SW   -> D2 
-
-Button
-GND  -> (-) Breadboard
-3.3v -> (+) Breadboard
-
----ARDUINO IDE CODE CORRESPONDING TO THIS SCRIPT---
-
-Note: This code is for the Arduino IDE, not C#. 
-When uploading to your Arduino, close the IDE after 
-uploading to free the serial port for Unity.
-
 int xAxisInput = A0;
 int yAxisInput = A1;
 int zClickInput = 2;
+int buttonInput = 3;
 
 int xAxisValue;
 int yAxisValue;
 int zClickValue;
+int buttonValue;
 
 void setup() {
   Serial.begin(9600);
   pinMode(xAxisInput, INPUT);
   pinMode(yAxisInput, INPUT);
   pinMode(zClickInput, INPUT);
+  pinMode(buttonInput, INPUT);
 
   // WAKE THE DIGITAL INPUT UP
   digitalWrite(zClickInput, HIGH);
+  digitalWrite(buttonInput, HIGH);
 }
 
 void loop() {
@@ -63,6 +49,7 @@ void loop() {
 
   // READ DIGITAL INPUT Z-CLICK
   zClickValue = digitalRead(zClickInput);
+  buttonValue = digitalRead(buttonInput);
 
   // FLIP CLICK VALUES AROUND SINCE WE HAD TO WAKE IT UP
   switch(zClickValue)
@@ -79,6 +66,7 @@ void loop() {
   Serial.println("x" + String(xAxisValue));
   Serial.println("y" + String(yAxisValue));
   Serial.println("z" + String(zClickValue));
+  Serial.println("b" + String(buttonValue));
   
   delay(50);
 }
@@ -90,8 +78,6 @@ To use the libraries System.IO.Ports and System.Threading,
 Unity needs to be set to use .NET Framework by changing settings found in:
 Edit > Project Settings > Player > Other Settings > Configuration > Api Compatability Level
 */
-
-
 
 
 public class ArduinoInput : MonoBehaviour
@@ -117,9 +103,9 @@ public class ArduinoInput : MonoBehaviour
 
     [Header("Button Mapping")]
     [Tooltip("Which button the Z-click should press on the virtual gamepad")]
-    public GamepadButton zMapsTo = GamepadButton.North;  
+    public GamepadButton zMapsTo = GamepadButton.North;
     [Tooltip("Which button the extra 'b' input should press on the virtual gamepad")]
-    public GamepadButton bMapsTo = GamepadButton.RightTrigger;  
+    public GamepadButton bMapsTo = GamepadButton.RightTrigger;
     [Tooltip("If your wiring uses pull-ups (HIGH when released, LOW when pressed), leave this ON.")]
     public bool bIsActiveLow = true;
     [Tooltip("If your Z input comes in active-low, set this accordingly.")]
@@ -139,34 +125,35 @@ public class ArduinoInput : MonoBehaviour
     private float _smoothedX, _smoothedY;
     private Gamepad _virtualPad;
 
-    // previous states for edge detection
-    private bool _prevBPressed;
-
     void Awake()
     {
         try
         {
-            _sp = new SerialPort(portName, baudRate) { NewLine = "\n", ReadTimeout = readTimeoutMs };
+            _sp = new SerialPort(portName, baudRate)
+            {
+                NewLine = "\n",
+                ReadTimeout = readTimeoutMs
+            };
             _sp.Open();
             Debug.Log("[ArduinoInput] Serial opened on " + portName);
         }
         catch (Exception e)
         {
             Debug.Log("[ArduinoInput] Failed to open serial: " + e.Message);
+            _sp = null; // make sure we don't think it's valid
         }
     }
 
     void Start()
     {
-        if (_sp == null)
-        {
-            _virtualPad = InputSystem.AddDevice<Gamepad>("Arduino Gamepad");
-            Debug.Log("[ArduinoInput] Virtual Gamepad added: " + _virtualPad.name);
-        }
+        // Always create the virtual gamepad regardless of serial status
+        _virtualPad = InputSystem.AddDevice<Gamepad>("Arduino Gamepad");
+        Debug.Log("[ArduinoInput] Virtual Gamepad added: " + _virtualPad.name);
     }
 
     void Update()
     {
+        // --- SERIAL READ ---
         if (_sp != null && _sp.IsOpen)
         {
             try
@@ -179,10 +166,18 @@ public class ArduinoInput : MonoBehaviour
                     // Expect "x512", "y487", "z1", "b1"
                     switch (line[0])
                     {
-                        case 'x': if (int.TryParse(line.AsSpan(1), out var vx)) rawX = vx; break;
-                        case 'y': if (int.TryParse(line.AsSpan(1), out var vy)) rawY = vy; break;
-                        case 'z': if (int.TryParse(line.AsSpan(1), out var vz)) rawZ = Mathf.Clamp(vz, 0, 1); break;
-                        case 'b': if (int.TryParse(line.AsSpan(1), out var vb)) rawB = Mathf.Clamp(vb, 0, 1); break;
+                        case 'x':
+                            if (int.TryParse(line.AsSpan(1), out var vx)) rawX = vx;
+                            break;
+                        case 'y':
+                            if (int.TryParse(line.AsSpan(1), out var vy)) rawY = vy;
+                            break;
+                        case 'z':
+                            if (int.TryParse(line.AsSpan(1), out var vz)) rawZ = Mathf.Clamp(vz, 0, 1);
+                            break;
+                        case 'b':
+                            if (int.TryParse(line.AsSpan(1), out var vb)) rawB = Mathf.Clamp(vb, 0, 1);
+                            break;
                     }
                 }
             }
@@ -193,7 +188,7 @@ public class ArduinoInput : MonoBehaviour
             }
         }
 
-        // Normalize & smooth
+        // --- ANALOG NORMALIZATION ---
         normX = NormalizeAxis(rawX, centerX, rawMin, rawMax, deadzone);
         normY = NormalizeAxis(rawY, centerY, rawMin, rawMax, deadzone);
 
@@ -209,26 +204,36 @@ public class ArduinoInput : MonoBehaviour
             _smoothedY = normY;
         }
 
-        // Process digital inputs with active-low options
+        // --- DIGITAL BUTTON PROCESSING ---
+        // Your Arduino already flips Z, so zIsActiveLow likely false.
         zPressed = zIsActiveLow ? (rawZ == 0) : (rawZ != 0);
         bPressed = bIsActiveLow ? (rawB == 0) : (rawB != 0);
 
-        Debug.Log($"x: {_smoothedX} y: {_smoothedY} / z: {rawZ} b:{rawB}");
+        Debug.Log($"x: {_smoothedX} y: {_smoothedY} / z: {rawZ}({zPressed}) b:{rawB}({bPressed})");
 
-        // Edge detection
-        _prevBPressed = bPressed;
-
+        // --- VIRTUAL GAMEPAD STATE ---
         if (_virtualPad != null)
         {
-            // Buttons (for anything that really IS a button)
             uint buttons = 0;
-            if (zPressed) buttons |= (uint)zMapsTo; // ok if zMapsTo is a real button (South/North/etc.)
 
-            // IMPORTANT: Right trigger is an AXIS (0..1), not a button
+            // Helper to convert GamepadButton enum to bitmask
+            static uint ButtonMask(GamepadButton btn) => 1u << (int)btn;
+
+            // Z as button
+            if (zPressed)
+                buttons |= ButtonMask(zMapsTo);
+
+            // B as button, unless mapped to RightTrigger axis
+            float rightTrigger = 0f;
+
+            // Right trigger is an axis in GamepadState
+            rightTrigger = bPressed ? 1f : 0f;
+        
+
             var state = new GamepadState
             {
                 leftStick = new Vector2(_smoothedX, -_smoothedY),
-                rightTrigger = bPressed ? 1f : 0f,   // map Arduino 'b' to RT axis
+                rightTrigger = rightTrigger,
                 buttons = buttons
             };
 
@@ -260,7 +265,11 @@ public class ArduinoInput : MonoBehaviour
 
         if (_sp != null)
         {
-            try { if (_sp.IsOpen) _sp.Close(); } catch { }
+            try
+            {
+                if (_sp.IsOpen) _sp.Close();
+            }
+            catch { }
             _sp.Dispose();
             _sp = null;
         }
@@ -268,4 +277,3 @@ public class ArduinoInput : MonoBehaviour
 
     void OnApplicationQuit() => OnDisable();
 }
-
