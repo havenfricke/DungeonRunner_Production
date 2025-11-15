@@ -6,7 +6,7 @@ public class PlayerAttack : MonoBehaviour
 {
     [Header("Attack Settings")]
     [SerializeField] private float attackRange = 2f;        // how far the raycast reaches
-    [SerializeField] private float attackDamage = 2f;       // damage dealt
+    [SerializeField] private float attackDamage = 10f;       // damage dealt
     [SerializeField] private float attackCooldown = 0.8f;   // delay between attacks
 
     private InputAction attack;
