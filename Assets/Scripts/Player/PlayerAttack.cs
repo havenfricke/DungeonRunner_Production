@@ -9,6 +9,9 @@ public class PlayerAttack : MonoBehaviour
 
     private float nextAttackTime = 0f;
 
+    public AudioClip attackSound;
+    public AudioClip damageSound;
+
     void Update()
     {
         // Left click + cooldown check
@@ -17,6 +20,7 @@ public class PlayerAttack : MonoBehaviour
             CheckForEnemyHit();
             nextAttackTime = Time.time + attackCooldown;
             Debug.Log("Player Attacked!");
+            AudioManager.Instance.PlaySFX(attackSound);
         }
     }
 
@@ -34,6 +38,7 @@ public class PlayerAttack : MonoBehaviour
                 if (enemyHealth != null)
                 {
                     enemyHealth.TakeDamage(attackDamage);
+                    AudioManager.Instance.PlaySFX(damageSound, 0.4f);
                     Debug.Log($"Enemy {hit.collider.name} took {attackDamage} damage!");
                 }
             }

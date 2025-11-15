@@ -31,6 +31,8 @@ public class PlayerController : MonoBehaviour
 
     public int playerNumber { get; private set; } = 0;
 
+    public AudioSource walkingSound;
+
     // Control scheme gate: true only when current active scheme is Keyboard+Mouse
     private bool isKeyboardMouse;
 
@@ -114,10 +116,25 @@ public class PlayerController : MonoBehaviour
         Vector3 moveDir = StickToWorld(move2D);
         Vector3 lookDir = StickToWorld(look2D);
 
-        // ---- MOVE ----
-        if (moveDir.sqrMagnitude > moveDeadzone * moveDeadzone)
-            controller.Move(moveDir * moveSpeed * Time.deltaTime);
+        bool isMoving = moveDir.sqrMagnitude > moveDeadzone * moveDeadzone;
 
+        // ---- MOVE ----
+        if (isMoving)
+        {
+            controller.Move(moveDir * moveSpeed * Time.deltaTime);
+            
+            if (!walkingSound.isPlaying)
+            {
+                walkingSound.Play();
+            }
+        }
+        else
+        {
+            if (walkingSound.isPlaying)
+            {
+                walkingSound.Stop();
+            }
+        }
         // ---- ROTATE (Mouse > RS > Move) ----
         Vector3 faceDir = Vector3.zero;
 

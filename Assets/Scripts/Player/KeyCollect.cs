@@ -4,6 +4,9 @@ public class KeyCollect : MonoBehaviour
 {
     private KeyCounterUI keyCounter;
 
+    public AudioClip collectSound;
+    public AudioClip unlockSound;
+
     private void Start()
     {
         // Find the KeyCounterUI in the scene
@@ -22,6 +25,7 @@ public class KeyCollect : MonoBehaviour
         {
             Debug.Log($"{name} collected a key!");
             keyCounter?.AddKey(); // Increment the key count
+            AudioManager.Instance.PlaySFX(collectSound, 0.4f);
             Destroy(other.gameObject); // Remove the key from the scene
             return;
         }
@@ -33,6 +37,7 @@ public class KeyCollect : MonoBehaviour
             {
                 Debug.Log($"{name} used a key to unlock a door!");
                 keyCounter.RemoveKey(); // Spend one key
+                AudioManager.Instance.PlaySFX(unlockSound, 0.5f);
                 Destroy(other.gameObject); // Open (destroy) the locked door
             }
             else

@@ -7,6 +7,8 @@ public class PlayerHealth : MonoBehaviour
     private float currentHealth;
     private bool isDead = false;
 
+    public AudioClip damageSound;
+
     private void Awake()
     {
         // Automatically find the HealthBarUI on this GameObject
@@ -25,6 +27,7 @@ public class PlayerHealth : MonoBehaviour
 
         healthBar.ModifyHealth(-damageAmount);
         currentHealth = Mathf.Clamp(currentHealth - damageAmount, 0, maxHealth);
+        AudioManager.Instance.PlaySFX(damageSound, 0.4f);
 
         if (currentHealth <= 0f && !isDead)
         {

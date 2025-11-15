@@ -12,6 +12,9 @@ public class GameManager : MonoBehaviour
     private int deadPlayers = 0;
     private int totalPlayers = 2;
 
+    public AudioClip winSound;
+    public AudioClip loseSound;
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -56,6 +59,8 @@ public class GameManager : MonoBehaviour
             Destroy(player.gameObject);
         }
 
+        AudioManager.Instance.PlaySFX(loseSound, 0.4f);
+
         // Optionally pause game time
         Time.timeScale = 0f;
     }
@@ -71,6 +76,8 @@ public class GameManager : MonoBehaviour
         {
             Destroy(player.gameObject);
         }
+
+        AudioManager.Instance.PlaySFX(winSound, 0.4f);
 
         // Optionally pause game time
         Time.timeScale = 0f;
