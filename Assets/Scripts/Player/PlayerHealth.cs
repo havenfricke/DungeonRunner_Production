@@ -2,45 +2,65 @@ using UnityEngine;
 
 public class PlayerHealth : MonoBehaviour
 {
-    public HealthBarUI healthBar;
     public float maxHealth = 100f;
     private float currentHealth;
     private bool isDead = false;
+
+    private HealthBarUI ui;
+    private PlayerController controller;
 
     public AudioClip damageSound;
 
     private void Awake()
     {
-        // Automatically find the HealthBarUI on this GameObject
-        healthBar = GetComponentInChildren<HealthBarUI>();
-        if (healthBar == null)
-        {
-            Debug.LogWarning($"{name} has no HealthBarUI attached or in its children!");
-        }
+        ui = GetComponentInChildren<HealthBarUI>();
+        controller = GetComponent<PlayerController>();
 
         currentHealth = maxHealth;
+
+        if (ui != null)
+            ui.SetHealthInstant(currentHealth, maxHealth);
     }
 
-    public void TakeDamage(float damageAmount)
+    public void TakeDamage(float amount)
     {
-        if (isDead || healthBar == null) return;
+        if (isDead) return;
 
-        healthBar.ModifyHealth(-damageAmount);
-        currentHealth = Mathf.Clamp(currentHealth - damageAmount, 0, maxHealth);
+        currentHealth = Mathf.Clamp(currentHealth - amount, 0, maxHealth);
+
+        if (ui != null)
+            ui.SetHealthInstant(currentHealth, maxHealth);
+
         AudioManager.Instance.PlaySFX(damageSound, 0.4f);
 
-        if (currentHealth <= 0f && !isDead)
+        if (currentHealth <= 0 && !isDead)
         {
-            isDead = true;
-            HandleDeath();
+            StartCoroutine(HandleDeath());
         }
     }
 
-    private void HandleDeath()
+    private System.Collections.IEnumerator HandleDeath()
     {
+        isDead = true;
+
+        if (controller != null)
+            controller.enabled = false;
+
         Debug.Log($"{name} has died!");
 
-        // Notify the GameManager
-        GameManager.Instance.PlayerDied(this);
+        // Wait 10 seconds
+        yield return new WaitForSeconds(10f);
+
+        // Revive
+        currentHealth = maxHealth;
+        isDead = false;
+
+        if (controller != null)
+            controller.enabled = true;
+
+        if (ui != null)
+            ui.SetHealthInstant(currentHealth, maxHealth);
+
+        Debug.Log($"{name} has revived!");
     }
 }

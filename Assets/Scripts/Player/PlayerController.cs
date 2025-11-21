@@ -31,6 +31,8 @@ public class PlayerController : MonoBehaviour
 
     public int playerNumber { get; private set; } = 0;
 
+    private float lockedY;
+
     public AudioSource walkingSound;
 
     // Control scheme gate: true only when current active scheme is Keyboard+Mouse
@@ -44,6 +46,12 @@ public class PlayerController : MonoBehaviour
         lookAction = input.actions["Look"];
         anim = GetComponentInChildren<Animator>();
         if (Camera.main) cam = Camera.main.transform;
+    }
+
+    void Start()
+    {
+        // Store the starting height as the fixed height
+        lockedY = transform.position.y;
     }
 
     public void SetPlayerNumber(int number)
@@ -165,6 +173,14 @@ public class PlayerController : MonoBehaviour
 
         // ---- ANIMATOR ----
         UpdateAnimatorValues(moveDir, faceDir);
+    }
+
+    void LateUpdate()
+    {
+        // Lock the player's height so they can never rise or fall
+        Vector3 pos = transform.position;
+        pos.y = lockedY;
+        transform.position = pos;
     }
 
     private void UpdateAnimatorValues(Vector3 moveWorld, Vector3 faceWorld)
