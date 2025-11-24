@@ -252,7 +252,7 @@ MonoBehaviour:
     m_ActionId: 9caa3d8a-6b2f-4e8e-8bad-6ede561bd9be
     m_ActionName: UI/TrackedDeviceOrientation
   m_NeverAutoSwitchControlSchemes: 0
-  m_DefaultControlScheme: Gamepad
+  m_DefaultControlScheme: 
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
@@ -293,6 +293,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07db73773f364024a8ac73c5f15846c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  attackInterval: 0.1
 --- !u!143 &9157227236644901852
 CharacterController:
   m_ObjectHideFlags: 0
@@ -359,7 +360,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackRange: 2
-  attackDamage: 10
+  attackDamage: 2
   attackCooldown: 0.8
   attackSound: {fileID: 8300000, guid: 1dc8d65f409b6b242a72efceee8d9ad3, type: 3}
   damageSound: {fileID: 8300000, guid: 4f6f92e9c92ac04449aa13cf899e3731, type: 3}

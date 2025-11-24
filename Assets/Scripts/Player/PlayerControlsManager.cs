@@ -7,30 +7,58 @@ public class PlayerControlsManager : MonoBehaviour
     private InputAction attack;
     private PlayerInput input;
     private Animator animator;
+
+    [SerializeField]
     private float attackInterval = 0.1f;
 
-    private void Start()
+    private void Awake()
     {
         input = GetComponent<PlayerInput>();
         animator = GetComponentInChildren<Animator>();
-        attack = input.actions["Attack"];
+
+        if (animator == null)
+        {
+            Debug.LogWarning("PlayerControlsManager: No Animator found in children.");
+        }
     }
 
-    void Update()
+    private void OnEnable()
     {
-        // Attack
-        ReadAttackInput();
+        if (input == null)
+        {
+            input = GetComponent<PlayerInput>();
+        }
+
+        // Use the same pattern as PlayerAttack
+        var map = input.currentActionMap;
+        attack = map.FindAction("Attack", throwIfNotFound: true);
+
+        attack.Enable();
+        attack.performed += OnAttackPerformed;
     }
 
+    private void OnDisable()
+    {
+        if (attack != null)
+        {
+            attack.performed -= OnAttackPerformed;
+            attack.Disable();
+        }
+    }
 
     // ------ ATTACK INPUT START ------ //
+    private void OnAttackPerformed(InputAction.CallbackContext ctx)
+    {
+        if (animator == null) return;
+
+        animator.SetBool("Attack", true);
+        StartDelayedExecution(attackInterval);
+    }
+
     void ReadAttackInput()
     {
-        if (attack.triggered)
-        {
-            animator.SetBool("Attack", true);
-            StartDelayedExecution(attackInterval);
-        }
+        // No longer needed (event-based), but keep if you still reference it elsewhere
+        // Left empty intentionally
     }
 
     public void StartDelayedExecution(float delayTime)
@@ -46,8 +74,8 @@ public class PlayerControlsManager : MonoBehaviour
 
     void FinishAttackInput()
     {
+        if (animator == null) return;
         animator.SetBool("Attack", false);
     }
-
     // ------ ATTACK INPUT END ------ //
 }
