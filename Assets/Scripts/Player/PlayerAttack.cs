@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Windows;
+
 public class PlayerAttack : MonoBehaviour
 {
     [Header("Attack Settings")]
@@ -13,19 +14,34 @@ public class PlayerAttack : MonoBehaviour
 
     private float nextAttackTime = 0f;
 
-    public AudioClip attackSound;
-    public AudioClip damageSound;
-
-    void Update()
+    private void Awake()
     {
-        // Left click + cooldown check
-        if (Input.GetMouseButtonDown(0) && Time.time >= nextAttackTime)
-        {
-            CheckForEnemyHit();
-            nextAttackTime = Time.time + attackCooldown;
-            Debug.Log("Player Attacked!");
-            AudioManager.Instance.PlaySFX(attackSound);
-        }
+        input = GetComponent<PlayerInput>();
+
+        // Safer: get Attack from the *current* map
+        attack = input.currentActionMap.FindAction("Attack", throwIfNotFound: true);
+    }
+
+    private void OnEnable()
+    {
+        attack.Enable();
+        attack.performed += OnAttackPerformed;
+    }
+
+    private void OnDisable()
+    {
+        attack.performed -= OnAttackPerformed;
+        attack.Disable();
+    }
+
+    private void OnAttackPerformed(InputAction.CallbackContext ctx)
+    {
+        if (Time.time < nextAttackTime) return;
+
+        Debug.Log("Attack input received");
+        CheckForEnemyHit();
+        nextAttackTime = Time.time + attackCooldown;
+        Debug.Log("Player Attacked!");
     }
 
     private void CheckForEnemyHit()
@@ -42,7 +58,6 @@ public class PlayerAttack : MonoBehaviour
                 if (enemyHealth != null)
                 {
                     enemyHealth.TakeDamage(attackDamage);
-                    AudioManager.Instance.PlaySFX(damageSound, 0.4f);
                     Debug.Log($"Enemy {hit.collider.name} took {attackDamage} damage!");
                 }
             }
