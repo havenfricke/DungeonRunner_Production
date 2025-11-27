@@ -360,10 +360,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackRange: 2
-  attackDamage: 2
+  attackDamage: 10
   attackCooldown: 0.8
-  attackSound: {fileID: 8300000, guid: 1dc8d65f409b6b242a72efceee8d9ad3, type: 3}
-  damageSound: {fileID: 8300000, guid: 4f6f92e9c92ac04449aa13cf899e3731, type: 3}
 --- !u!114 &8542567951025676749
 MonoBehaviour:
   m_ObjectHideFlags: 0

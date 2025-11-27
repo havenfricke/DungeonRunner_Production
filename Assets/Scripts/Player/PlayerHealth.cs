@@ -48,6 +48,8 @@ public class PlayerHealth : MonoBehaviour
 
         Debug.Log($"{name} has died!");
 
+        GameManager.Instance.PlayerDied(this);
+
         // Wait 10 seconds
         yield return new WaitForSeconds(10f);
 
